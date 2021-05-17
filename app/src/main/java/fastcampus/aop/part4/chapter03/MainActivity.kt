@@ -1,10 +1,10 @@
 package fastcampus.aop.part4.chapter03
 
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import fastcampus.aop.part4.chapter03.MapActivity.Companion.SEARCH_RESULT_EXTRA_KEY
 import fastcampus.aop.part4.chapter03.databinding.ActivityMainBinding
@@ -14,6 +14,7 @@ import fastcampus.aop.part4.chapter03.response.search.Poi
 import fastcampus.aop.part4.chapter03.response.search.Pois
 import fastcampus.aop.part4.chapter03.utillity.RetrofitUtil
 import kotlinx.coroutines.*
+import java.lang.Exception
 import kotlin.coroutines.CoroutineContext
 
 class MainActivity : AppCompatActivity(), CoroutineScope {
@@ -37,7 +38,6 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
         initViews()
         bindViews()
         initData()
-
     }
 
     private fun initAdapter() {
@@ -62,43 +62,40 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
     private fun setData(pois: Pois) {
         val dataList = pois.poi.map {
             SearchResultEntity(
-                name = it.name ?: "빌딩명 없음",
-                fullAddress = makeMainAdress(it) ,
-                locationLatLng = LocationLatLngEntity(
-                    it.noorLat, it.noorLon
-                )
+                fullAddress = makeMainAdress(it),
+                name = it.name ?: "",
+                locationLatLng = LocationLatLngEntity(it.noorLat, it.noorLon)
             )
         }
         adapter.setSearchResultList(dataList) {
-            Toast.makeText(this, "빌딩이름 ${it.name} 주소 : ${it.fullAddress} 위도/경도 : ${it.locationLatLng}", Toast.LENGTH_SHORT).show()
-            startActivity(Intent(this, MapActivity::class.java)
-                .apply {
+            startActivity(
+                Intent(this, MapActivity::class.java).apply {
                     putExtra(SEARCH_RESULT_EXTRA_KEY, it)
                 }
             )
-
         }
     }
 
-    private fun searchKeyword(keyword: String) {
+    private fun searchKeyword(keywordString: String) {
         launch(coroutineContext) {
             try {
                 withContext(Dispatchers.IO) {
                     val response = RetrofitUtil.apiService.getSearchLocation(
-                        keyword = keyword
+                        keyword = keywordString
                     )
-                    if(response.isSuccessful) {
+                    if (response.isSuccessful) {
                         val body = response.body()
                         withContext(Dispatchers.Main) {
-                            Log.e("response", body.toString())
-                            body?.let { searchResponse ->
-                                setData(searchResponse.searchPoiInfo.pois)
+                            Log.e("list", body.toString())
+                            body?.let { searchResponseSchema ->
+                                setData(searchResponseSchema.searchPoiInfo.pois)
                             }
                         }
                     }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
+                Toast.makeText(this@MainActivity, "검색하는 과정에서 에러가 발생했습니다. : ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -119,4 +116,8 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
                     poi.secondNo?.trim()
         }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        job.cancel()
+    }
 }
