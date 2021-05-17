@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="tmap_api_key"></string>
-
-
+    <string name="google_map">AIzaSyAzsGVDCJLnGaYETXleL0bsUpaCEvBLNAc</string>
 </resources>
