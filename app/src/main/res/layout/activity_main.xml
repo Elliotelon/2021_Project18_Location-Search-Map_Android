@@ -11,6 +11,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:hint="@string/please_input_search_keyword"
+        android:inputType="text"
         app:layout_constraintEnd_toStartOf="@id/searchButton"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
